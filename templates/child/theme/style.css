@@ -1,0 +1,15 @@
+/*
+ * Theme Name:   {{theme_name}}
+ * Theme URI:
+ * Template:     {{pressgang_parent_slug}}
+ * Description:  A PressGang child theme.
+ * Author:
+ * Author URI:
+ * Version:      1.0.0
+ * License:      GPLv2+
+ * License URI:  https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:  {{textdomain}}
+ * Domain Path:  /lang
+ */
+
+@import "css/styles.css";

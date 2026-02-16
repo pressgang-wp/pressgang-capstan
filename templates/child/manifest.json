@@ -1,0 +1,9 @@
+{
+    "text_extensions": ["php", "css", "json", "twig", "md", "pot", "scss"],
+    "rename_map": {
+        "lang/theme.pot": "lang/{{textdomain}}.pot"
+    },
+    "defaults": {
+        "pressgang_parent_slug": "pressgang"
+    }
+}

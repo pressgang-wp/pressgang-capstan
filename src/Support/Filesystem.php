@@ -29,4 +29,19 @@ class Filesystem
     {
         return $this->fs->exists($path);
     }
+
+    public function readFile(string $path): string
+    {
+        return file_get_contents($path);
+    }
+
+    public function writeFile(string $path, string $content): void
+    {
+        $this->fs->dumpFile($path, $content);
+    }
+
+    public function copy(string $source, string $destination): void
+    {
+        $this->fs->copy($source, $destination, true);
+    }
 }

@@ -1,0 +1,31 @@
+{
+	"name": "pressgang-wp/{{theme_slug}}",
+	"description": "A PressGang child theme.",
+	"type": "wordpress-theme",
+	"license": "MIT",
+	"require": {
+		"pressgang-wp/pressgang": "^2.0"
+	},
+	"extra": {
+		"installer-paths": {
+			"../../plugins/{$name}/": [
+				"type:wordpress-plugin"
+			],
+			"../../themes/{$name}/": [
+				"type:wordpress-theme"
+			]
+		}
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true,
+		"allow-plugins": {
+			"composer/installers": true
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"{{theme_namespace}}\\": "src/"
+		}
+	}
+}

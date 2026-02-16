@@ -1,5 +1,0 @@
-{
-    "text_extensions": ["php", "css", "json", "twig", "md"],
-    "rename_map": {},
-    "defaults": {}
-}

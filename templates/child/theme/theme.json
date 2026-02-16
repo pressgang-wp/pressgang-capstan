@@ -1,0 +1,56 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"color": {
+			"defaultPalette": false,
+			"palette": [
+				{
+					"name": "Black",
+					"slug": "black",
+					"color": "#000000"
+				},
+				{
+					"name": "White",
+					"slug": "white",
+					"color": "#FFFFFF"
+				}
+			]
+		},
+		"layout": {
+			"contentSize": "800px",
+			"wideSize": "1200px"
+		},
+		"spacing": {
+			"defaultSpacingSizes": true,
+			"spacingScale": {
+				"operator": "*",
+				"increment": 1.5,
+				"steps": 7,
+				"mediumStep": 1.5,
+				"unit": "rem"
+			},
+			"units": [
+				"px",
+				"rem",
+				"em",
+				"%",
+				"vw",
+				"vh"
+			]
+		},
+		"typography": {
+			"defaultFontSizes": true,
+			"fluid": true
+		}
+	},
+	"styles": {
+		"color": {
+			"text": "var(--wp--preset--color--black)",
+			"background": "var(--wp--preset--color--white)"
+		}
+	},
+	"customTemplates": {},
+	"templateParts": {}
+}
