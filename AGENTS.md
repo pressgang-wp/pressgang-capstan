@@ -458,6 +458,22 @@ The plan output shows every file that would be created and whether it receives t
 
 ---
 
+## Known Issues
+
+### Credentials visible in process list
+
+The `wp capstan new` command passes database credentials and admin passwords as shell arguments to WP-CLI subprocesses (e.g. `wp config create --dbpass=…`). These are momentarily visible in `ps` output. This is a WP-CLI limitation — WP-CLI core commands accept credentials the same way. Mitigation: use environment variables or `wp-cli.yml` for sensitive values in production-like environments.
+
+### Process::fromShellCommandline usage
+
+`Shell::stream()` and `Shell::run()` use `Process::fromShellCommandline()` which passes commands through the system shell. All user-supplied values are escaped with `escapeshellarg()` before interpolation, which prevents injection. The array-based `Process` constructor would provide defense-in-depth but requires restructuring how commands are built throughout the codebase. This is a future improvement opportunity.
+
+### Sequential token replacement
+
+`TemplateApplier` uses `str_replace()` with arrays, which processes replacements sequentially. If a token value itself contains a `{{placeholder}}` pattern matching another token name, it could be double-replaced. In practice this is safe because token values are derived from slugs (kebab-case) and namespaces (PascalCase), neither of which contain `{{…}}` patterns. The risk is theoretical but worth noting for future preset authors.
+
+---
+
 ## Versioning
 
 Capstan follows SemVer.
