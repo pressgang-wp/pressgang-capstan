@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace PressGang\Capstan\Commands;
 
 use PressGang\Capstan\Support\ContextResolver;
@@ -55,6 +53,7 @@ class MakeChildCommand
     {
         $slug = $args[0];
         $this->validateSlug($slug);
+        $this->validateNamespace($assoc_args);
 
         $force = isset($assoc_args['force']);
 
@@ -84,10 +83,30 @@ class MakeChildCommand
 
     private function validateSlug(string $slug): void
     {
-        if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug)) {
+        if (! Tokens::isValidSlug($slug)) {
             \WP_CLI::error(
                 'Invalid slug "' . $slug . '": must be kebab-case '
                 . '(lowercase letters, numbers, and hyphens; no leading/trailing hyphens).'
+            );
+        }
+    }
+
+    /**
+     * Validate that --namespace, if provided, is a legal PHP namespace.
+     *
+     * @param array<string, string> $assoc_args Named arguments from WP-CLI.
+     * @return void
+     */
+    private function validateNamespace(array $assoc_args): void
+    {
+        if (! isset($assoc_args['namespace'])) {
+            return;
+        }
+
+        if (! Tokens::isValidNamespace($assoc_args['namespace'])) {
+            \WP_CLI::error(
+                'Invalid namespace "' . $assoc_args['namespace'] . '": '
+                . 'must be a valid PHP namespace (e.g. MyTheme or Acme\\MyTheme).'
             );
         }
     }

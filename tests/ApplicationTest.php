@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace PressGang\Capstan\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -26,6 +24,32 @@ class ApplicationTest extends TestCase
     {
         $this->assertSame('MyTheme', Tokens::deriveNamespaceFromSlug('my-theme'));
         $this->assertSame('Starter', Tokens::deriveNamespaceFromSlug('starter'));
+    }
+
+    public function testTokensIsValidSlug(): void
+    {
+        $this->assertTrue(Tokens::isValidSlug('my-theme'));
+        $this->assertTrue(Tokens::isValidSlug('starter'));
+        $this->assertTrue(Tokens::isValidSlug('theme-2'));
+        $this->assertFalse(Tokens::isValidSlug('My-Theme'));
+        $this->assertFalse(Tokens::isValidSlug('-leading'));
+        $this->assertFalse(Tokens::isValidSlug('trailing-'));
+        $this->assertFalse(Tokens::isValidSlug('double--dash'));
+        $this->assertFalse(Tokens::isValidSlug('has_underscore'));
+        $this->assertFalse(Tokens::isValidSlug(''));
+    }
+
+    public function testTokensIsValidNamespace(): void
+    {
+        $this->assertTrue(Tokens::isValidNamespace('MyTheme'));
+        $this->assertTrue(Tokens::isValidNamespace('Acme\\MyTheme'));
+        $this->assertTrue(Tokens::isValidNamespace('A\\B\\C'));
+        $this->assertFalse(Tokens::isValidNamespace('myTheme'));
+        $this->assertFalse(Tokens::isValidNamespace('My Theme'));
+        $this->assertFalse(Tokens::isValidNamespace('My;Theme'));
+        $this->assertFalse(Tokens::isValidNamespace(''));
+        $this->assertFalse(Tokens::isValidNamespace('\\Leading'));
+        $this->assertFalse(Tokens::isValidNamespace('Trailing\\'));
     }
 
     public function testContextResolverReturnsNullForNonWpDir(): void
