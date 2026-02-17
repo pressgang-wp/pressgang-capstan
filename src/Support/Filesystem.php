@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace PressGang\Capstan\Support;
 
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
