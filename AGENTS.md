@@ -13,9 +13,19 @@ Capstan borrows the ergonomics of Artisan, but remains strictly WordPress-native
 Capstan is not:
 
 - A standalone CLI (it was; it is now a WP-CLI extension)
-- A runtime dependency (it is require-dev only)
+- A per-project Composer dependency (it is installed globally via `wp package install`)
 - A build tool or asset compiler
 - A replacement for WP-CLI core commands
+
+### Distribution
+
+Capstan is installed as a global WP-CLI package:
+
+    wp package install pressgang-wp/capstan
+
+Global installation is required because scaffolding commands (`wp capstan new`, `wp capstan make child`) run before any project or theme exists — there is no `composer.json` to require Capstan into yet. The `composer.json` declares `"type": "wp-cli-package"` and uses `files` autoload to register commands via `capstan.php`.
+
+Other PressGang packages (e.g. `pressgang-wp/muster`) may register their own subcommands under the `capstan` namespace. WP-CLI merges subcommands from all installed packages, so `wp capstan muster` works without Capstan knowing about muster. Each package owns its own command registration.
 
 ---
 
@@ -23,11 +33,12 @@ Capstan is not:
 
 Capstan sits alongside these packages — all under `pressgang-wp/`:
 
-| Package         | Role                                                                                             |
-|-----------------|--------------------------------------------------------------------------------------------------|
-| pressgang       | Parent theme framework. Config-driven registration, Timber 2 rendering, controllers as view models. |
-| quartermaster   | Fluent WP_Query args builder. Standalone, no PressGang coupling.                                 |
-| capstan         | WP-CLI scaffolding, inspection, and theme management commands.                                   |
+| Package         | Install method              | Role                                                                                              |
+|-----------------|-----------------------------|---------------------------------------------------------------------------------------------------|
+| pressgang       | `composer require` (theme)  | Parent theme framework. Config-driven registration, Timber 2 rendering, controllers as view models. |
+| quartermaster   | `composer require` (theme)  | Fluent WP_Query args builder. Standalone, no PressGang coupling.                                  |
+| capstan         | `wp package install` (global) | WP-CLI scaffolding, inspection, and theme management commands.                                  |
+| muster          | `composer require-dev` (theme) | Data seeding orchestrator. Registers `wp capstan muster` via its own package.                  |
 
 Capstan must understand PressGang's architecture to generate correct scaffolding.
 
@@ -140,7 +151,7 @@ No runtime mutations.
 
 Capstan assumes it runs inside a WordPress project unless explicitly told otherwise via `--path`.
 
-Capstan does not attempt to bootstrap WordPress itself. The exception is `wp capstan new`, which creates a WordPress project from scratch and uses `@when before_wp_load`.
+Capstan does not attempt to bootstrap WordPress itself. Scaffolding commands (`wp capstan new`, `wp capstan make child`) use `@when before_wp_load` because they run before WordPress exists. They rely on WP-CLI's global package loader, not on any project-level autoloading.
 
 ### Explicit Command Registration
 
