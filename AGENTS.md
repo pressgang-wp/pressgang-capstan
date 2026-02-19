@@ -94,6 +94,24 @@ wp capstan make child my-theme --path=/srv/www/wp-content/themes --force
 
 The child theme's `composer.json` requires `pressgang-wp/pressgang` and uses `installer-paths` to put the parent theme at `../../themes/pressgang/`. Running `composer install` in the child theme directory wires everything up.
 
+### Theme packaging
+
+```bash
+# Dry-run — preview what would be packaged (from inside a theme directory)
+wp capstan theme package
+
+# Create the zip
+wp capstan theme package --force
+
+# Package a specific directory
+wp capstan theme package /path/to/my-theme --force
+
+# Custom output path
+wp capstan theme package --output=release/my-theme.zip --force
+```
+
+`theme package` walks the theme directory, excludes build artifacts (`.git/`, `vendor/`, `node_modules/`, editor dirs, swap files, lock files), and creates a zip with a single `<slug>/` top-level directory — ready for "Appearance > Themes > Upload Theme" in WordPress admin.
+
 ### Environment info
 
 ```bash
@@ -267,6 +285,8 @@ src/
     NewCommand.php                  # wp capstan new
     MakeCommand.php                 # wp capstan make (dispatcher)
     MakeChildCommand.php            # wp capstan make child
+    ThemeCommand.php                # wp capstan theme (dispatcher)
+    ThemePackageCommand.php         # wp capstan theme package
 
   Support/
     AcfSetup.php                    # ACF Pro composer.json + MU-plugin loader content
@@ -274,6 +294,7 @@ src/
     ContextResolver.php             # Detects WP root by walking upward
     Filesystem.php                  # symfony/filesystem wrapper
     Shell.php                       # symfony/process wrapper (run + stream)
+    ThemePackager.php                # Theme directory → uploadable zip
     Tokens.php                      # String derivation (slug → name, slug → namespace)
 
     Templates/
