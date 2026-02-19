@@ -34,11 +34,12 @@ composer install
 
 ## Available Commands
 
-| Command                 | Description                                                             |
-|-------------------------|-------------------------------------------------------------------------|
-| `wp capstan about`      | Display Capstan version, PHP version, and WordPress root detection      |
-| `wp capstan new`        | Scaffold a full PressGang WordPress project (core, parent, child theme) |
-| `wp capstan make child` | Scaffold a PressGang child theme from the built-in template             |
+| Command                    | Description                                                             |
+|----------------------------|-------------------------------------------------------------------------|
+| `wp capstan about`         | Display Capstan version, PHP version, and WordPress root detection      |
+| `wp capstan new`           | Scaffold a full PressGang WordPress project (core, parent, child theme) |
+| `wp capstan make child`    | Scaffold a PressGang child theme from the built-in template             |
+| `wp capstan theme package` | Create a WordPress-uploadable ZIP from a theme directory                |
 
 ## Usage
 
@@ -86,6 +87,26 @@ wp capstan make child my-theme --name="My Theme" --namespace=MyTheme --force
 wp capstan make child my-theme --path=/srv/www/wp-content/themes --force
 ```
 
+### Theme packaging
+
+Package a theme directory into a zip ready for "Appearance > Themes > Upload Theme" in WordPress admin. Build artifacts (`.git/`, `vendor/`, `node_modules/`, editor dirs, `.env`, dev config files) are automatically excluded.
+
+```bash
+# Preview what would be packaged (from inside a theme directory)
+wp capstan theme package
+
+# Create the zip
+wp capstan theme package --force
+
+# Package a specific directory
+wp capstan theme package /path/to/my-theme --force
+
+# Custom output path
+wp capstan theme package --output=release/my-theme.zip --force
+```
+
+The zip is created alongside the theme directory by default (e.g. `themes/my-theme.zip`).
+
 ### Environment info
 
 ```bash
@@ -107,3 +128,4 @@ Planned commands:
 - `make cpt` — scaffold a custom post type with config registration
 - `doctor` — diagnose common theme configuration issues
 - `config dump` — display resolved PressGang configuration
+- `theme screenshot` — generate a theme screenshot
