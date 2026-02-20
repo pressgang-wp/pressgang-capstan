@@ -17,18 +17,26 @@ Capstan is a WP-CLI extension that scaffolds, configures, and manages PressGang-
 Install as a global WP-CLI package:
 
 ```bash
-wp package install pressgang-wp/capstan
+wp package install https://github.com/pressgang-wp/pressgang-capstan.git
 ```
 
-This makes all `wp capstan` commands available system-wide. Global installation is the recommended approach because scaffolding commands like `wp capstan new` and `wp capstan make child` run before a project or theme exists — there is no `composer.json` to require Capstan into yet.
+WP-CLI's shorthand package index (`wp package install pressgang-wp/capstan`) is deprecated and may not resolve this package. Use the Git URL command above.
+
+Composer install into the WP-CLI packages directory is also supported:
+
+```bash
+mkdir -p ~/.wp-cli/packages && cd ~/.wp-cli/packages && composer require pressgang-wp/capstan:dev-main
+```
+
+This makes all `wp capstan` commands available system-wide. Global installation is the recommended approach because scaffolding commands like `wp capstan new` and `wp capstan make child` run before a project or theme exists — there is no project `composer.json` to require Capstan into yet.
 
 ### For Capstan development
 
 If you are contributing to Capstan itself, clone the repo and install dependencies locally:
 
 ```bash
-git clone git@github.com:pressgang-wp/capstan.git
-cd capstan
+git clone git@github.com:pressgang-wp/pressgang-capstan.git
+cd pressgang-capstan
 composer install
 ```
 

@@ -21,7 +21,13 @@ Capstan is not:
 
 Capstan is installed as a global WP-CLI package:
 
-    wp package install pressgang-wp/capstan
+    wp package install https://github.com/pressgang-wp/pressgang-capstan.git
+
+Alternative (Composer in WP-CLI package dir):
+
+    mkdir -p ~/.wp-cli/packages && cd ~/.wp-cli/packages && composer require pressgang-wp/capstan:dev-main
+
+Note: `wp package install pressgang-wp/capstan` uses WP-CLI's deprecated shorthand package index and may not resolve this package.
 
 Global installation is required because scaffolding commands (`wp capstan new`, `wp capstan make child`) run before any project or theme exists — there is no `composer.json` to require Capstan into yet. The `composer.json` declares `"type": "wp-cli-package"` and uses `files` autoload to register commands via `capstan.php`.
 
