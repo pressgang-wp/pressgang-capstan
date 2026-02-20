@@ -8,7 +8,7 @@ Capstan is a WP-CLI extension that scaffolds, configures, and manages PressGang-
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - [WP-CLI](https://wp-cli.org/) installed and available
 - [Composer](https://getcomposer.org/) installed and available
 
