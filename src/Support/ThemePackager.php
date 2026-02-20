@@ -10,6 +10,7 @@ class ThemePackager
 {
     /** @var list<string> Directories to exclude from packaging. */
     private const EXCLUDED_DIRS = [
+        '.claude',
         '.git',
         '.github',
         '.husky',
@@ -82,6 +83,7 @@ class ThemePackager
 
     /** @var list<string> File extensions to exclude from packaging. */
     private const EXCLUDED_EXTENSIONS = [
+        'bak',
         'swp',
         'swo',
         'tmp',
