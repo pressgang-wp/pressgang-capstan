@@ -548,6 +548,8 @@ class NewCommand
                 . 'Run "composer install" manually in ' . $childDir
             );
         }
+
+        \PressGang\Capstan\Support\BosunBriefing::attempt($childDir);
     }
 
     /**

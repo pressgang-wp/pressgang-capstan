@@ -75,6 +75,10 @@ class MakeChildCommand
             $written = $applier->apply($tokens, $targetDir, $force);
             \WP_CLI::log('');
             \WP_CLI::success(count($written) . ' files written to ' . $targetDir);
+            \WP_CLI::log('');
+            \WP_CLI::log('Next steps:');
+            \WP_CLI::log('  cd ' . $targetDir . ' && composer install');
+            \PressGang\Capstan\Support\BosunBriefing::tip();
         } else {
             \WP_CLI::log('');
             \WP_CLI::log('Dry run complete. Re-run with --force to write files.');
