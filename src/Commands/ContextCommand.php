@@ -4,10 +4,14 @@ namespace PressGang\Capstan\Commands;
 
 /**
  * Shows a controller's context contract: its declared context getter
- * manifest and the getters available to it.
+ * manifest and the getters available to it. With --add, publishes keys
+ * into the manifest.
  *
- * Pure reflection — the controller is never instantiated, so inspecting it
- * has no side effects.
+ * Inspection is pure reflection — the controller is never instantiated.
+ * Manifest edits are conservative and explicit: you name the keys
+ * (auto-publishing every getter is exactly what the manifest exists to
+ * avoid), only theme-owned files are edited, and the rewritten file is
+ * lint-checked before it replaces the original. Dry-run by default.
  *
  * ## OPTIONS
  *
@@ -15,10 +19,21 @@ namespace PressGang\Capstan\Commands;
  * : Controller name (e.g. FrontPage, FrontPageController) or a fully
  * qualified class name.
  *
+ * [--add=<keys>]
+ * : Comma-separated context keys to publish. Each needs a get_{key}()
+ * method on the controller.
+ *
+ * [--add-all]
+ * : Publish every theme getter not already in the manifest.
+ *
+ * [--force]
+ * : Write the manifest change (omit to preview).
+ *
  * ## EXAMPLES
  *
  *     wp capstan context FrontPage
- *     wp capstan context "BristolHealthPartners\Controllers\EventsController"
+ *     wp capstan context FrontPage --add=news,events
+ *     wp capstan context FrontPage --add=news,events --force
  */
 class ContextCommand
 {
@@ -31,6 +46,12 @@ class ContextCommand
         }
 
         $reflection = new \ReflectionClass($class);
+
+        if (isset($assoc_args['add']) || isset($assoc_args['add-all'])) {
+            $this->publish($reflection, $assoc_args);
+
+            return;
+        }
         $manifest = $reflection->getDefaultProperties()['context_getters'] ?? [];
         $template = $reflection->getDefaultProperties()['template'] ?? null;
 
@@ -121,6 +142,109 @@ class ContextCommand
         }
 
         return null;
+    }
+
+    /**
+     * Publishes context keys into the controller's manifest source.
+     */
+    private function publish(\ReflectionClass $reflection, array $assoc_args): void
+    {
+        $file = (string) $reflection->getFileName();
+        $theme = get_stylesheet_directory();
+
+        if (! str_starts_with($file, $theme . '/')) {
+            \WP_CLI::error("{$reflection->getName()} lives outside the active theme ({$file}) — capstan only edits theme-owned controllers.");
+        }
+
+        $keys = isset($assoc_args['add'])
+            ? array_values(array_filter(array_map('trim', explode(',', (string) $assoc_args['add']))))
+            : $this->unpublished_keys($reflection);
+
+        if ($keys === []) {
+            \WP_CLI::success('Nothing to publish — the manifest already covers every theme getter.');
+
+            return;
+        }
+
+        $missing = array_filter($keys, fn (string $key) => ! $reflection->hasMethod("get_{$key}"));
+
+        if ($missing) {
+            \WP_CLI::error('No getter for: ' . implode(', ', array_map(fn ($k) => "get_{$k}()", $missing)) . ' — the manifest must not point at methods that do not exist.');
+        }
+
+        $source = (string) file_get_contents($file);
+        $updated = \PressGang\Capstan\Support\ManifestWriter::add($source, $keys);
+
+        if ($updated === null) {
+            \WP_CLI::warning('The $context_getters declaration is not a shape capstan will edit — add the keys manually:');
+            \WP_CLI::log("\tprotected array \$context_getters = [ '" . implode("', '", $keys) . "' ];");
+            \WP_CLI::halt(1);
+        }
+
+        if ($updated === $source) {
+            \WP_CLI::success('Manifest already up to date.');
+
+            return;
+        }
+
+        \WP_CLI::log('Would publish: ' . implode(', ', $keys));
+        \WP_CLI::log('');
+
+        foreach (array_diff(explode("\n", $updated), explode("\n", $source)) as $line) {
+            \WP_CLI::log("  + {$line}");
+        }
+
+        if (! isset($assoc_args['force'])) {
+            \WP_CLI::log('');
+            \WP_CLI::log('Dry run — re-run with --force to write.');
+
+            return;
+        }
+
+        // Lint the rewrite before it replaces the original.
+        $staged = $file . '.capstan-staged';
+        file_put_contents($staged, $updated);
+        exec('php -l ' . escapeshellarg($staged) . ' 2>&1', $output, $exit);
+
+        if ($exit !== 0) {
+            unlink($staged);
+            \WP_CLI::error('Rewritten controller failed php -l — nothing written. ' . implode(' ', $output));
+        }
+
+        rename($staged, $file);
+
+        \WP_CLI::success('Published. Verify with: wp capstan context ' . $reflection->getShortName());
+    }
+
+    /**
+     * Context keys for every theme getter not already in the manifest.
+     *
+     * @return array<int, string>
+     */
+    private function unpublished_keys(\ReflectionClass $reflection): array
+    {
+        $manifest = (array) ($reflection->getDefaultProperties()['context_getters'] ?? []);
+        $mapped = array_map(
+            fn ($key, $method) => is_int($key) ? "get_{$method}" : $method,
+            array_keys($manifest),
+            $manifest
+        );
+
+        $keys = [];
+
+        foreach ($reflection->getMethods() as $method) {
+            if (
+                str_starts_with($method->getName(), 'get_')
+                && ! in_array($method->getName(), $mapped, true)
+                && ! str_starts_with((string) $method->getDeclaringClass()->getName(), 'PressGang\\')
+                && ! in_array($method->getName(), ['get_context', 'get_template'], true)
+                && $this->pressgang_parent_declaring($reflection, $method->getName()) === null
+            ) {
+                $keys[] = substr($method->getName(), 4);
+            }
+        }
+
+        return $keys;
     }
 
     /**
