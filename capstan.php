@@ -12,3 +12,4 @@ WP_CLI::add_command('capstan resolve', \PressGang\Capstan\Commands\ResolveComman
 WP_CLI::add_command('capstan context', \PressGang\Capstan\Commands\ContextCommand::class);
 WP_CLI::add_command('capstan config dump', \PressGang\Capstan\Commands\ConfigDumpCommand::class);
 WP_CLI::add_command('capstan snippets', \PressGang\Capstan\Commands\SnippetsCommand::class);
+WP_CLI::add_command('capstan doctor', \PressGang\Capstan\Commands\DoctorCommand::class);
