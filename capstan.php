@@ -13,3 +13,5 @@ WP_CLI::add_command('capstan context', \PressGang\Capstan\Commands\ContextComman
 WP_CLI::add_command('capstan config dump', \PressGang\Capstan\Commands\ConfigDumpCommand::class);
 WP_CLI::add_command('capstan snippets', \PressGang\Capstan\Commands\SnippetsCommand::class);
 WP_CLI::add_command('capstan doctor', \PressGang\Capstan\Commands\DoctorCommand::class);
+WP_CLI::add_command('capstan make cpt', \PressGang\Capstan\Commands\MakeCptCommand::class);
+WP_CLI::add_command('capstan make block', \PressGang\Capstan\Commands\MakeBlockCommand::class);
