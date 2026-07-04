@@ -10,3 +10,5 @@ WP_CLI::add_command('capstan make child', \PressGang\Capstan\Commands\MakeChildC
 WP_CLI::add_command('capstan theme package', \PressGang\Capstan\Commands\ThemePackageCommand::class);
 WP_CLI::add_command('capstan resolve', \PressGang\Capstan\Commands\ResolveCommand::class);
 WP_CLI::add_command('capstan context', \PressGang\Capstan\Commands\ContextCommand::class);
+WP_CLI::add_command('capstan config dump', \PressGang\Capstan\Commands\ConfigDumpCommand::class);
+WP_CLI::add_command('capstan snippets', \PressGang\Capstan\Commands\SnippetsCommand::class);
