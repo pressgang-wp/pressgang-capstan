@@ -49,8 +49,9 @@ composer install
 | `wp capstan make child`       | Scaffold a PressGang child theme from the built-in template             |
 | `wp capstan make cpt`         | Scaffold a custom post type entry in config/custom-post-types.php       |
 | `wp capstan make block`       | Scaffold an ACF block: block.json, Twig template, config registration   |
+| `wp capstan make controller`  | Scaffold a controller with a documented context_getters manifest        |
 | `wp capstan resolve <url>`    | Show template hierarchy candidates and the resolved controller for a URL |
-| `wp capstan context <Ctrl>`   | Show a controller's context manifest and getters (pure reflection)      |
+| `wp capstan context <Ctrl>`   | Show a controller's context manifest and getters; --add publishes keys  |
 | `wp capstan config dump`      | Display the resolved PressGang configuration                            |
 | `wp capstan snippets`         | List registered snippets, their resolved classes, and args              |
 | `wp capstan doctor`           | Run deterministic theme configuration health checks                     |
