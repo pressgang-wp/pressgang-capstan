@@ -130,10 +130,24 @@ wp capstan about
 
 ## Roadmap
 
-Planned commands:
+This roadmap is the single source of truth for planned Capstan commands
+(other ecosystem docs link here rather than restating it).
+
+Scaffolding:
 
 - `make block` — scaffold a custom block
 - `make cpt` — scaffold a custom post type with config registration
+
+Introspection — designed for humans and AI agents alike; once shipped,
+[Bosun](https://github.com/pressgang-wp/pressgang-bosun) fragments will
+teach agents these recipes:
+
+- `resolve <url>` — show the template candidates and resolved controller for a URL
+- `config dump` — display the resolved PressGang configuration
+- `snippets` — list registered snippets and their constructor args
+- `context <Controller>` — show a controller's context keys and getters
 - `doctor` — diagnose common theme configuration issues
-- `config dump` — display resolved PressGang configuration
+
+Theme utilities:
+
 - `theme screenshot` — generate a theme screenshot
