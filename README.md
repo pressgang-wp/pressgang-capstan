@@ -42,12 +42,19 @@ composer install
 
 ## Available Commands
 
-| Command                    | Description                                                             |
-|----------------------------|-------------------------------------------------------------------------|
-| `wp capstan about`         | Display Capstan version, PHP version, and WordPress root detection      |
-| `wp capstan new`           | Scaffold a full PressGang WordPress project (core, parent, child theme) |
-| `wp capstan make child`    | Scaffold a PressGang child theme from the built-in template             |
-| `wp capstan theme package` | Create a WordPress-uploadable ZIP from a theme directory                |
+| Command                       | Description                                                             |
+|-------------------------------|-------------------------------------------------------------------------|
+| `wp capstan about`            | Display Capstan version, PHP version, and WordPress root detection      |
+| `wp capstan new`              | Scaffold a full PressGang WordPress project (core, parent, child theme) |
+| `wp capstan make child`       | Scaffold a PressGang child theme from the built-in template             |
+| `wp capstan make cpt`         | Scaffold a custom post type entry in config/custom-post-types.php       |
+| `wp capstan make block`       | Scaffold an ACF block: block.json, Twig template, config registration   |
+| `wp capstan resolve <url>`    | Show template hierarchy candidates and the resolved controller for a URL |
+| `wp capstan context <Ctrl>`   | Show a controller's context manifest and getters (pure reflection)      |
+| `wp capstan config dump`      | Display the resolved PressGang configuration                            |
+| `wp capstan snippets`         | List registered snippets, their resolved classes, and args              |
+| `wp capstan doctor`           | Run deterministic theme configuration health checks                     |
+| `wp capstan theme package`    | Create a WordPress-uploadable ZIP from a theme directory                |
 
 ## Usage
 
@@ -132,21 +139,6 @@ wp capstan about
 
 This roadmap is the single source of truth for planned Capstan commands
 (other ecosystem docs link here rather than restating it).
-
-Scaffolding:
-
-- `make block` — scaffold a custom block
-- `make cpt` — scaffold a custom post type with config registration
-
-Introspection — designed for humans and AI agents alike; once shipped,
-[Bosun](https://github.com/pressgang-wp/pressgang-bosun) fragments will
-teach agents these recipes:
-
-- `resolve <url>` — show the template candidates and resolved controller for a URL
-- `config dump` — display the resolved PressGang configuration
-- `snippets` — list registered snippets and their constructor args
-- `context <Controller>` — show a controller's context keys and getters
-- `doctor` — diagnose common theme configuration issues
 
 Theme utilities:
 
