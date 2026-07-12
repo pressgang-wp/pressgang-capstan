@@ -13,10 +13,20 @@ use PressGang\Capstan\Support\RequestSimulator;
  * <url>
  * : URL path to resolve, relative to the site home (e.g. /events/).
  *
+ * [--format=<format>]
+ * : Output format. `json` emits the full resolution as structured data
+ * for harnesses (conditionals, template, candidates, winning controller).
+ * ---
+ * default: log
+ * options:
+ *   - log
+ *   - json
+ * ---
+ *
  * ## EXAMPLES
  *
  *     wp capstan resolve /
- *     wp capstan resolve /events/
+ *     wp capstan resolve /events/ --format=json
  *     wp capstan resolve "/news/?s=health"
  */
 class ResolveCommand
@@ -31,6 +41,34 @@ class ResolveCommand
 
         $theme_root = dirname(get_stylesheet_directory());
         $relative = str_replace(trailingslashit($theme_root), '', $result['template']);
+
+        if (($assoc_args['format'] ?? 'log') === 'json') {
+            $candidates = \PressGang\Templates\TemplateHierarchy::candidates();
+            $resolved = null;
+
+            if ($candidates) {
+                $resolved = \PressGang\Controllers\ControllerFactory::resolve_candidate_for(
+                    $candidates,
+                    (array) \PressGang\Bootstrap\Config::get('controllers', []),
+                    \get_child_theme_namespace(),
+                    \PressGang\Configuration\PageTemplates::slugs()
+                );
+            }
+
+            \WP_CLI::log((string) json_encode([
+                'url' => $args[0],
+                'is_404' => $result['is_404'],
+                'conditionals' => $result['conditionals'],
+                'template' => $relative,
+                'dispatched' => $result['dispatched'],
+                'candidates' => $candidates,
+                'controller' => $resolved['controller'] ?? null,
+                'twig' => $resolved['twig'] ?? null,
+                'winning_candidate' => $resolved['candidate'] ?? null,
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return;
+        }
 
         \WP_CLI::log('Request:      ' . $args[0] . ($result['is_404'] ? '  (WordPress flags this 404)' : ''));
         \WP_CLI::log('Conditionals: ' . (implode(', ', $result['conditionals']) ?: '(none)'));

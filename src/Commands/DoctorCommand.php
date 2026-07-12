@@ -8,9 +8,23 @@ namespace PressGang\Capstan\Commands;
  * Every check is deterministic — filesystem and class-map facts, no
  * heuristics — so a clean bill of health means something.
  *
+ * ## OPTIONS
+ *
+ * [--format=<format>]
+ * : Output format. `json` emits {checks, failures, warnings} for harnesses
+ * (e.g. shakedown's pre-flight) and exits non-zero on failures without the
+ * human summary lines.
+ * ---
+ * default: table
+ * options:
+ *   - table
+ *   - json
+ * ---
+ *
  * ## EXAMPLES
  *
  *     wp capstan doctor
+ *     wp capstan doctor --format=json
  */
 class DoctorCommand
 {
@@ -79,10 +93,24 @@ class DoctorCommand
             ];
         }
 
-        \WP_CLI\Utils\format_items('table', $this->results, ['check', 'status', 'detail']);
-
         $failures = array_filter($this->results, fn (array $row) => $row['status'] === 'FAIL');
         $warnings = array_filter($this->results, fn (array $row) => $row['status'] === 'WARN');
+
+        if (($assoc_args['format'] ?? 'table') === 'json') {
+            \WP_CLI::log((string) json_encode([
+                'checks' => $this->results,
+                'failures' => count($failures),
+                'warnings' => count($warnings),
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            if ($failures) {
+                \WP_CLI::halt(1);
+            }
+
+            return;
+        }
+
+        \WP_CLI\Utils\format_items('table', $this->results, ['check', 'status', 'detail']);
 
         if ($failures) {
             \WP_CLI::error(count($failures) . ' check(s) failed.');
