@@ -23,3 +23,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Shakedown (e2e testing) run artifacts — visual baselines in tests/__screenshots__ ARE committed
+.shakedown/
+playwright-report/
+test-results/
