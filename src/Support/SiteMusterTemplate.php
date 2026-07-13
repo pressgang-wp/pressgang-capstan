@@ -67,10 +67,14 @@ use PressGang\Muster\Muster;
 final class SiteMuster extends Muster
 {
 	/**
-	 * Fixture dates are pinned so rendered dates (and visual snapshots)
-	 * never drift between seed runs.
+	 * Pin relative dates independently of Faker's random seed.
+	 *
+	 * @return string Absolute fixture epoch.
 	 */
-	private const SEED_DATE = '2026-01-01 09:00:00';
+	public static function defaultEpoch(): string
+	{
+		return '2026-01-01 09:00:00+00:00';
+	}
 
 	public function run(): void
 	{
@@ -143,7 +147,7 @@ PHP];
 					->title(\$this->victuals()->headline())
 					->slug('{$type['name']}-' . \$i)
 					->status('publish')
-					->date(self::SEED_DATE){$terms}
+					->date(\$this->epoch()->format('Y-m-d H:i:s')){$terms}
 					->content(\$this->victuals()->paragraphs(2))
 					->acf(\$this->acfFor('{$type['name']}'))
 			);
@@ -187,7 +191,7 @@ PHP];
 				->title('{$title}')
 				->slug('{$slug}')
 				->status('publish')
-				->date(self::SEED_DATE)
+				->date(\$this->epoch()->format('Y-m-d H:i:s'))
 				->template('{$template}')
 				->content(\$this->victuals()->paragraphs(2))
 				->acf(\$this->acfFor('{$template}'))

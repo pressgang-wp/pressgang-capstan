@@ -33,6 +33,10 @@ class SiteMusterTemplateTest extends TestCase
 
         $this->assertStringContainsString('namespace BristolBrc\Muster;', $source);
         $this->assertStringContainsString('final class SiteMuster extends Muster', $source);
+        $this->assertStringContainsString('public static function defaultEpoch(): string', $source);
+        $this->assertStringContainsString("return '2026-01-01 09:00:00+00:00';", $source);
+        $this->assertStringContainsString("->date(\$this->epoch()->format('Y-m-d H:i:s'))", $source);
+        $this->assertStringNotContainsString('SEED_DATE', $source);
 
         foreach (['terms', 'content', 'pages', 'menus'] as $method) {
             $this->assertStringContainsString("\$this->{$method}();", $source);
