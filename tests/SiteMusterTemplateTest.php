@@ -43,16 +43,19 @@ class SiteMusterTemplateTest extends TestCase
         $this->assertStringContainsString("->acf(\$this->acfFor('event'))", $source);
         $this->assertStringContainsString("->template('page-templates/contact.php')", $source);
         $this->assertStringContainsString("->location('main-menu')", $source);
+        $this->assertStringContainsString("->key('term:event_type:' . \$i)", $source);
+        $this->assertStringContainsString("->key('post:event:' . \$i)", $source);
+        $this->assertStringContainsString("->key('page:contact')", $source);
+        $this->assertStringContainsString("->key('menu:main-menu')", $source);
     }
 
-    public function testFreshTruncatesExactlyWhatIsSeeded(): void
+    public function testFreshUsesMusterOwnershipInsteadOfGeneratedTruncation(): void
     {
         $source = SiteMusterTemplate::render($this->blueprint());
 
-        $this->assertStringContainsString("->posts('post')", $source);
-        $this->assertStringContainsString("->posts('event')", $source);
-        $this->assertStringContainsString("->terms('event_type')", $source);
-        $this->assertStringContainsString('WARNING: truncation removes ALL content', $source);
+        $this->assertStringContainsString('clears only resources this class owns', $source);
+        $this->assertStringNotContainsString('function fresh()', $source);
+        $this->assertStringNotContainsString('truncate()', $source);
     }
 
     public function testEmptySectionsAreOmittedEntirely(): void
@@ -70,7 +73,7 @@ class SiteMusterTemplateTest extends TestCase
             $this->assertStringNotContainsString("private function {$method}(", $source);
         }
 
-        $this->assertStringContainsString('Nothing to truncate yet', $source);
+        $this->assertStringNotContainsString('function fresh()', $source);
     }
 
     public function testGeneratedSourceIsValidPhp(): void

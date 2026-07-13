@@ -44,7 +44,6 @@ final class SiteMusterTemplate
             array_keys($sections)
         ));
 
-        $freshLines = self::freshLines($blueprint['postTypes'], $blueprint['taxonomies']);
         $methods = implode("\n", $sections);
 
         return <<<PHP
@@ -58,7 +57,7 @@ use PressGang\Muster\Muster;
  * Development seed for the {$theme} theme.
  *
  * Run with:   wp capstan seed
- * Reset with: wp capstan seed --fresh   (clears everything this class seeds)
+ * Reset with: wp capstan seed --fresh   (clears only resources this class owns)
  *
  * Generated once by `wp capstan make muster` as a starting point — this file
  * is YOURS: rename fixtures, add domain content, delete what you don't need.
@@ -75,18 +74,6 @@ final class SiteMuster extends Muster
 	public function run(): void
 	{
 {$runCalls}
-	}
-
-	/**
-	 * Clean slate for re-seeding (wp capstan seed --fresh).
-	 *
-	 * WARNING: truncation removes ALL content of these types — not just
-	 * seeded items. Fine on a fresh dev site or sandbox; think twice on a
-	 * dev site holding real content you want to keep.
-	 */
-	public function fresh(): void
-	{
-{$freshLines}
 	}
 
 {$methods}}
@@ -108,6 +95,7 @@ PHP;
             return <<<PHP
 		foreach ([1, 2, 3] as \$i) {
 			\$this->term('{$tax['name']}')
+				->key('term:{$tax['name']}:' . \$i)
 				->name('{$tax['label']} ' . \$i)
 				->slug('{$tax['name']}-' . \$i)
 				->save();
@@ -147,6 +135,7 @@ PHP];
             return <<<PHP
 		\$this->pattern('{$type['name']}')->count(5)->build(
 			fn (int \$i) => \$this->post('{$type['name']}')
+				->key('post:{$type['name']}:' . \$i)
 				->title(\$this->victuals()->headline())
 				->slug('{$type['name']}-' . \$i)
 				->status('publish')
@@ -188,6 +177,7 @@ PHP];
 
             return <<<PHP
 		\$this->page()
+			->key('page:{$slug}')
 			->title('{$title}')
 			->slug('{$slug}')
 			->status('publish')
@@ -228,6 +218,7 @@ PHP];
         foreach ($menus as $location => $label) {
             $blocks[] = <<<PHP
 		\$this->menu('{$label}')
+			->key('menu:{$location}')
 			->link('Home', '/')
 			->location('{$location}')
 			->save();
@@ -248,22 +239,4 @@ PHP;
 PHP];
     }
 
-    /**
-     * @param array<int, array{name: string, label: string, taxonomy: string|null}> $postTypes
-     * @param array<int, array{name: string, label: string}> $taxonomies
-     * @return string
-     */
-    private static function freshLines(array $postTypes, array $taxonomies): string
-    {
-        $calls = array_merge(
-            array_map(static fn (array $t): string => "\t\t\t->posts('{$t['name']}')", $postTypes),
-            array_map(static fn (array $t): string => "\t\t\t->terms('{$t['name']}')", $taxonomies),
-        );
-
-        if ($calls === []) {
-            return "\t\t// Nothing to truncate yet — add ->posts()/->terms() calls as you seed.";
-        }
-
-        return "\t\t\$this->truncate()\n" . implode("\n", $calls) . ';';
-    }
 }
