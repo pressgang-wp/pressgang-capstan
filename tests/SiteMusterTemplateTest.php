@@ -47,6 +47,11 @@ class SiteMusterTemplateTest extends TestCase
         $this->assertStringContainsString("->key('post:event:' . \$i)", $source);
         $this->assertStringContainsString("->key('page:contact')", $source);
         $this->assertStringContainsString("->key('menu:main-menu')", $source);
+        $this->assertStringContainsString("\$this->group('taxonomy:event_type'", $source);
+        $this->assertStringContainsString("\$this->group('content:event'", $source);
+        $this->assertStringContainsString("\$this->group('page:contact'", $source);
+        $this->assertStringContainsString("\$this->group('menu:main-menu'", $source);
+        $this->assertStringContainsString('wp capstan seed --only=content:event', $source);
     }
 
     public function testFreshUsesMusterOwnershipInsteadOfGeneratedTruncation(): void

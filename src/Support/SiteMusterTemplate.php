@@ -58,6 +58,7 @@ use PressGang\Muster\Muster;
  *
  * Run with:   wp capstan seed
  * Reset with: wp capstan seed --fresh   (clears only resources this class owns)
+ * Partial:    wp capstan seed --only=content:event
  *
  * Generated once by `wp capstan make muster` as a starting point — this file
  * is YOURS: rename fixtures, add domain content, delete what you don't need.
@@ -93,13 +94,15 @@ PHP;
 
         $blocks = array_map(static function (array $tax): string {
             return <<<PHP
-		foreach ([1, 2, 3] as \$i) {
-			\$this->term('{$tax['name']}')
-				->key('term:{$tax['name']}:' . \$i)
-				->name('{$tax['label']} ' . \$i)
-				->slug('{$tax['name']}-' . \$i)
-				->save();
-		}
+		\$this->group('taxonomy:{$tax['name']}', function (): void {
+			foreach ([1, 2, 3] as \$i) {
+				\$this->term('{$tax['name']}')
+					->key('term:{$tax['name']}:' . \$i)
+					->name('{$tax['label']} ' . \$i)
+					->slug('{$tax['name']}-' . \$i)
+					->save();
+			}
+		});
 PHP;
         }, $taxonomies);
 
@@ -130,19 +133,21 @@ PHP];
         $blocks = array_map(static function (array $type): string {
             $terms = $type['taxonomy'] === null
                 ? ''
-                : "\n\t\t\t\t->terms('{$type['taxonomy']}', ['{$type['taxonomy']}-' . (1 + \$i % 3)])";
+                : "\n\t\t\t\t\t->terms('{$type['taxonomy']}', ['{$type['taxonomy']}-' . (1 + \$i % 3)])";
 
             return <<<PHP
-		\$this->pattern('{$type['name']}')->count(5)->build(
-			fn (int \$i) => \$this->post('{$type['name']}')
-				->key('post:{$type['name']}:' . \$i)
-				->title(\$this->victuals()->headline())
-				->slug('{$type['name']}-' . \$i)
-				->status('publish')
-				->date(self::SEED_DATE){$terms}
-				->content(\$this->victuals()->paragraphs(2))
-				->acf(\$this->acfFor('{$type['name']}'))
-		);
+		\$this->group('content:{$type['name']}', function (): void {
+			\$this->pattern('{$type['name']}')->count(5)->build(
+				fn (int \$i) => \$this->post('{$type['name']}')
+					->key('post:{$type['name']}:' . \$i)
+					->title(\$this->victuals()->headline())
+					->slug('{$type['name']}-' . \$i)
+					->status('publish')
+					->date(self::SEED_DATE){$terms}
+					->content(\$this->victuals()->paragraphs(2))
+					->acf(\$this->acfFor('{$type['name']}'))
+			);
+		});
 PHP;
         }, $postTypes);
 
@@ -176,16 +181,18 @@ PHP];
             $title = ucwords(str_replace('-', ' ', $slug));
 
             return <<<PHP
-		\$this->page()
-			->key('page:{$slug}')
-			->title('{$title}')
-			->slug('{$slug}')
-			->status('publish')
-			->date(self::SEED_DATE)
-			->template('{$template}')
-			->content(\$this->victuals()->paragraphs(2))
-			->acf(\$this->acfFor('{$template}'))
-			->save();
+		\$this->group('page:{$slug}', function (): void {
+			\$this->page()
+				->key('page:{$slug}')
+				->title('{$title}')
+				->slug('{$slug}')
+				->status('publish')
+				->date(self::SEED_DATE)
+				->template('{$template}')
+				->content(\$this->victuals()->paragraphs(2))
+				->acf(\$this->acfFor('{$template}'))
+				->save();
+		});
 PHP;
         }, $pageTemplates);
 
@@ -217,11 +224,13 @@ PHP];
 
         foreach ($menus as $location => $label) {
             $blocks[] = <<<PHP
-		\$this->menu('{$label}')
-			->key('menu:{$location}')
-			->link('Home', '/')
-			->location('{$location}')
-			->save();
+		\$this->group('menu:{$location}', function (): void {
+			\$this->menu('{$label}')
+				->key('menu:{$location}')
+				->link('Home', '/')
+				->location('{$location}')
+				->save();
+		});
 PHP;
         }
 
