@@ -11,5 +11,5 @@ namespace PressGang\Capstan;
  */
 class CapstanCommand
 {
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.3.0';
 }
