@@ -8,9 +8,21 @@ use PressGang\Capstan\Support\ContextResolver;
 /**
  * Display information about Capstan.
  *
+ * ## OPTIONS
+ *
+ * [--format=<format>]
+ * : Output format. `json` emits the same fields as structured data.
+ * ---
+ * default: log
+ * options:
+ *   - log
+ *   - json
+ * ---
+ *
  * ## EXAMPLES
  *
  *     wp capstan about
+ *     wp capstan about --format=json
  *
  * @when before_wp_load
  */
@@ -20,6 +32,17 @@ class AboutCommand
     {
         $cwd = getcwd();
         $context = ContextResolver::resolve($cwd);
+
+        if (($assoc_args['format'] ?? 'log') === 'json') {
+            \WP_CLI::log((string) json_encode([
+                'version' => CapstanCommand::VERSION,
+                'php' => PHP_VERSION,
+                'working_dir' => $cwd,
+                'wp_root' => $context->wpRoot,
+            ]));
+
+            return;
+        }
 
         \WP_CLI::log('Capstan version ' . CapstanCommand::VERSION);
         \WP_CLI::log('');

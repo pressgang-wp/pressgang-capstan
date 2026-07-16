@@ -29,9 +29,20 @@ namespace PressGang\Capstan\Commands;
  * [--force]
  * : Write the manifest change (omit to preview).
  *
+ * [--format=<format>]
+ * : Output format for inspection (ignored with --add). `json` emits the
+ * manifest, framework overrides, and unmapped getters as structured data.
+ * ---
+ * default: log
+ * options:
+ *   - log
+ *   - json
+ * ---
+ *
  * ## EXAMPLES
  *
  *     wp capstan context FrontPage
+ *     wp capstan context FrontPage --format=json
  *     wp capstan context FrontPage --add=news,events
  *     wp capstan context FrontPage --add=news,events --force
  */
@@ -52,42 +63,29 @@ class ContextCommand
 
             return;
         }
-        $manifest = $reflection->getDefaultProperties()['context_getters'] ?? [];
+        $manifest_decl = $reflection->getDefaultProperties()['context_getters'] ?? [];
         $template = $reflection->getDefaultProperties()['template'] ?? null;
 
-        \WP_CLI::log("Controller: {$class}");
-        \WP_CLI::log('Source:     ' . $reflection->getFileName());
-        \WP_CLI::log('Extends:    ' . ($reflection->getParentClass()?->getName() ?? '—'));
-        \WP_CLI::log('Template:   ' . ($template ?: '(inferred)'));
-        \WP_CLI::log('');
-
-        $rows = [];
+        $manifest = [];
         $mapped_methods = [];
 
-        foreach ((array) $manifest as $key => $method) {
+        foreach ((array) $manifest_decl as $key => $method) {
             if (is_int($key)) {
                 [$key, $method] = [$method, "get_{$method}"];
             }
 
             $mapped_methods[] = $method;
-            $rows[] = [
-                'context key' => $key,
-                'getter' => $method . ($reflection->hasMethod($method) ? '' : '  (MISSING)'),
-                'declared in' => $reflection->hasMethod($method)
-                    ? $this->declared_in($reflection->getMethod($method))
-                    : '—',
+            $has = $reflection->hasMethod($method);
+            $manifest[] = [
+                'context_key' => $key,
+                'getter' => $method,
+                'missing' => ! $has,
+                'declared_in' => $has ? $this->declared_in($reflection->getMethod($method)) : null,
             ];
         }
 
-        if ($rows) {
-            \WP_CLI::log('Context manifest ($context_getters):');
-            \WP_CLI\Utils\format_items('table', $rows, ['context key', 'getter', 'declared in']);
-        } else {
-            \WP_CLI::log('Context manifest: (none — context comes from get_context() and parent controllers)');
-        }
-
-        $unmapped = [];
         $overrides = [];
+        $unmapped = [];
 
         foreach ($reflection->getMethods() as $method) {
             if (
@@ -100,18 +98,50 @@ class ContextCommand
             }
 
             if ($parent = $this->pressgang_parent_declaring($reflection, $method->getName())) {
-                $overrides[] = $method->getName() . '()  — overrides ' . $parent;
+                $overrides[] = ['method' => $method->getName(), 'overrides' => $parent];
             } else {
-                $unmapped[] = $method->getName() . '()  — ' . $this->declared_in($method);
+                $unmapped[] = ['method' => $method->getName(), 'declared_in' => $this->declared_in($method)];
             }
+        }
+
+        if (($assoc_args['format'] ?? 'log') === 'json') {
+            \WP_CLI::log((string) json_encode([
+                'controller' => $class,
+                'source' => $reflection->getFileName(),
+                'extends' => $reflection->getParentClass()?->getName(),
+                'template' => $template ?: null,
+                'manifest' => $manifest,
+                'framework_overrides' => $overrides,
+                'unmapped_getters' => $unmapped,
+            ]));
+
+            return;
+        }
+
+        \WP_CLI::log("Controller: {$class}");
+        \WP_CLI::log('Source:     ' . $reflection->getFileName());
+        \WP_CLI::log('Extends:    ' . ($reflection->getParentClass()?->getName() ?? '—'));
+        \WP_CLI::log('Template:   ' . ($template ?: '(inferred)'));
+        \WP_CLI::log('');
+
+        if ($manifest) {
+            \WP_CLI::log('Context manifest ($context_getters):');
+            $rows = array_map(fn (array $m): array => [
+                'context key' => $m['context_key'],
+                'getter' => $m['getter'] . ($m['missing'] ? '  (MISSING)' : ''),
+                'declared in' => $m['declared_in'] ?? '—',
+            ], $manifest);
+            \WP_CLI\Utils\format_items('table', $rows, ['context key', 'getter', 'declared in']);
+        } else {
+            \WP_CLI::log('Context manifest: (none — context comes from get_context() and parent controllers)');
         }
 
         if ($overrides) {
             \WP_CLI::log('');
             \WP_CLI::log('Framework getter overrides (feed the parent controller\'s context):');
 
-            foreach ($overrides as $line) {
-                \WP_CLI::log("  {$line}");
+            foreach ($overrides as $o) {
+                \WP_CLI::log("  {$o['method']}()  — overrides {$o['overrides']}");
             }
         }
 
@@ -119,8 +149,8 @@ class ContextCommand
             \WP_CLI::log('');
             \WP_CLI::log('Getters not in the manifest (available, but not auto-published):');
 
-            foreach ($unmapped as $line) {
-                \WP_CLI::log("  {$line}");
+            foreach ($unmapped as $u) {
+                \WP_CLI::log("  {$u['method']}()  — {$u['declared_in']}");
             }
         }
     }
