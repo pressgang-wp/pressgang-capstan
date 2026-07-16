@@ -140,28 +140,47 @@ final class ToolRegistry implements ToolProvider
             )),
         );
 
-        // TODO net-new — surface Shakedown's observer.php per-request signals
-        // (resolved template/controller, captured PHP notices/errors) as a
-        // dev-time logs tool. Optionally fetch `url` and read the observer headers.
+        // Recent PHP errors/warnings from the WordPress debug log — the
+        // environment-native error source (Shakedown's observer signals are a
+        // complementary sandbox-only source, added later).
         $this->add(
             'pressgang_logs',
-            "Recent template/controller resolutions and PHP issues from Shakedown's observer.",
+            'Recent entries from the WordPress debug log (WP_DEBUG_LOG).',
             [
                 'type'       => 'object',
-                'properties' => [
-                    'url'   => ['type' => 'string', 'description' => 'Optional URL to fetch and read observer headers for'],
-                    'limit' => ['type' => 'integer'],
-                ],
+                'properties' => ['lines' => ['type' => 'integer', 'description' => 'Trailing lines to return (default 50)']],
             ],
-            fn (array $a): array => $this->text('TODO: read observer.php signals', isError: true),
+            fn (array $a): array => $this->data((new \PressGang\Capstan\Support\LogReader())->tail((int) ($a['lines'] ?? 50))),
         );
     }
 
     private function registerWriteTools(): void
     {
-        // TODO (gated, preview-first — honour Capstan's dry-run default):
-        //   pressgang_eval  → wp eval in theme context (Tinker analogue)
-        //   pressgang_make  → wp capstan make {controller|cpt|block|muster}, preview then --force
+        // Scaffolding: bounded to `wp capstan make` (kind is an enum), and
+        // preview-first — writes only when force is true (Capstan's dry-run
+        // default). Gated behind --allow-write.
+        $this->add(
+            'pressgang_make',
+            'Scaffold via wp capstan make. Previews unless force is true.',
+            [
+                'type'       => 'object',
+                'properties' => [
+                    'kind'  => ['type' => 'string', 'enum' => ['controller', 'cpt', 'block', 'muster']],
+                    'name'  => ['type' => 'string', 'description' => 'Subject name (not needed for muster)'],
+                    'force' => ['type' => 'boolean', 'description' => 'Write instead of preview'],
+                ],
+                'required'   => ['kind'],
+            ],
+            fn (array $a): array => $this->run(
+                'capstan make ' . escapeshellarg((string) ($a['kind'] ?? ''))
+                . (($a['name'] ?? '') !== '' ? ' ' . escapeshellarg((string) $a['name']) : '')
+                . (! empty($a['force']) ? ' --force' : '')
+            ),
+        );
+
+        // pressgang_eval (arbitrary PHP via wp eval, a Tinker analogue) is
+        // intentionally NOT registered here — an RCE surface that needs explicit
+        // owner sign-off before it ships. See ADR 0001.
     }
 
     // -- plumbing -------------------------------------------------------------
@@ -184,17 +203,19 @@ final class ToolRegistry implements ToolProvider
      */
     private function proxy(string $template, array $args): array
     {
-        $command = vsprintf($template, array_map('escapeshellarg', $args));
+        return $this->run(vsprintf($template, array_map('escapeshellarg', $args)));
+    }
 
-        $json = \WP_CLI::runcommand($command, [
+    /** Run a fully-formed capstan/WP-CLI command in-process, output as text. */
+    private function run(string $command): array
+    {
+        $out = \WP_CLI::runcommand($command, [
             'return'     => 'stdout',
             'exit_error' => false,
             'launch'     => false,
         ]);
 
-        return $this->text(
-            is_string($json) && $json !== '' ? $json : '{"error":"command produced no output"}',
-        );
+        return $this->text(is_string($out) && $out !== '' ? $out : '(no output)');
     }
 
     /** Wrap a structured payload as JSON text content. */
