@@ -36,6 +36,7 @@ final class ApiIndexGenerator
     public function generate(array $manifest, string $generated_at): array
     {
         $reads_globals = $manifest['reads_globals'] ?? [];
+        $annotate_args = (bool) ($manifest['annotate_args'] ?? false);
         $methods = [];
 
         foreach ($manifest['groups'] ?? [] as $group => [$class, $names]) {
@@ -52,7 +53,7 @@ final class ApiIndexGenerator
                     continue;
                 }
 
-                $meta = $this->docblock($method);
+                $meta = $this->docblock($method, $annotate_args);
 
                 $methods[] = [
                     'name' => $method->getName(),
@@ -134,9 +135,14 @@ final class ApiIndexGenerator
     /**
      * Parse the one-line note, doc links, and any `Sets:` args from a docblock.
      *
+     * @param bool $annotate_args Whether this package uses the query-args
+     *                            (`Sets:`) convention. When true, methods with
+     *                            no annotation are flagged so gaps are visible;
+     *                            when false (the default), notes stay clean.
+     *
      * @return array{sets_args: list<string>, notes: string, wp_docs: list<string>}
      */
-    private function docblock(\ReflectionMethod $method): array
+    private function docblock(\ReflectionMethod $method, bool $annotate_args): array
     {
         $doc = (string) $method->getDocComment();
 
@@ -155,10 +161,13 @@ final class ApiIndexGenerator
         preg_match_all('/https:\/\/developer\.wordpress\.org\/[^\s*]+|https:\/\/timber\.github\.io\/[^\s*]+/i', $doc, $urls);
         $wp_docs = array_values(array_unique($urls[0] ?? []));
 
-        $notes = '(args mapping not annotated yet)';
+        $unannotated = $annotate_args ? '(args mapping not annotated yet)' : '';
+        $notes = $unannotated;
 
         foreach (preg_split('/\R/', $doc) as $line) {
-            $line = ltrim(trim($line), "/* \t");
+            // Strip docblock furniture from both ends: leading ` * ` and, for
+            // single-line blocks (`/** note */`), the trailing ` */`.
+            $line = trim(trim($line), "/* \t");
 
             if ($line === '' || str_starts_with($line, '@') || str_starts_with($line, 'Sets:') || str_starts_with($line, 'See:')) {
                 continue;
@@ -168,7 +177,7 @@ final class ApiIndexGenerator
             break;
         }
 
-        if ($sets_args === [] && ! $has_sets_line && $notes !== '(args mapping not annotated yet)') {
+        if ($annotate_args && $sets_args === [] && ! $has_sets_line && $notes !== '' && $notes !== $unannotated) {
             $notes .= ' (args mapping not annotated yet)';
         }
 

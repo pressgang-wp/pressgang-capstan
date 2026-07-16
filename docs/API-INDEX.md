@@ -21,6 +21,7 @@ return [
     'version'       => '0.1.0',
     'entrypoint'    => Quartermaster::class,
     'principles'    => ['Args-first; outputs plain WP_Query arrays', /* … */],
+    'annotate_args' => true,                              // opt in to the Sets:/query-args convention
     'reads_globals' => ['paged' => true],                 // method => reads request globals
     'groups'        => [
         // group label => [class, [method, …]]

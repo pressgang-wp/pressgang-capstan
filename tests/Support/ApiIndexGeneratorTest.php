@@ -23,6 +23,12 @@ class SampleApi
     {
     }
 
+    /** Return everything. */
+    public function all(): self
+    {
+        return $this;
+    }
+
     protected function hidden(): void
     {
     }
@@ -40,7 +46,7 @@ class ApiIndexGeneratorTest extends TestCase
             'reads_globals' => ['reset' => true],
             'groups' => [
                 'Filter' => [SampleApi::class, ['whereMeta', 'hidden', 'missingMethod']],
-                'Lifecycle' => [SampleApi::class, ['reset']],
+                'Lifecycle' => [SampleApi::class, ['reset', 'all']],
             ],
         ];
     }
@@ -87,6 +93,22 @@ class ApiIndexGeneratorTest extends TestCase
         $this->assertNotContains('hidden', $names);       // protected
         $this->assertNotContains('missingMethod', $names); // not defined
         $this->assertTrue($this->method('reset')['reads_globals']);
+    }
+
+    public function testNotesStayCleanWhenArgsNotAnnotated(): void
+    {
+        // Default manifest has no annotate_args — an unannotated method is clean.
+        $this->assertSame('Return everything.', $this->method('all')['notes']);
+    }
+
+    public function testAnnotateArgsFlagsUnannotatedMethods(): void
+    {
+        $manifest = ['annotate_args' => true] + $this->manifest();
+        $payload = (new ApiIndexGenerator())->generate($manifest, '2026-01-01T00:00:00Z');
+
+        $all = array_values(array_filter($payload['methods'], static fn ($m) => $m['name'] === 'all'))[0];
+
+        $this->assertSame('Return everything. (args mapping not annotated yet)', $all['notes']);
     }
 
     private function method(string $name): array
