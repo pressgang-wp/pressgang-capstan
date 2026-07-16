@@ -137,11 +137,17 @@ Commands should fall into one of the following categories:
 - `wp capstan make child`
 - `wp capstan make block`
 - `wp capstan make cpt`
+- `wp capstan make controller`
+- `wp capstan make muster` (scaffolds `muster/SiteMuster.php`, mapped under the theme's composer `autoload-dev`)
 
 ### Inspection
 - `wp capstan about`
 - `wp capstan doctor`
 - `wp capstan config dump`
+- `wp capstan resolve`
+- `wp capstan context`
+- `wp capstan snippets`
+- `wp capstan matrix`
 
 ### Packaging
 - `wp capstan theme package`
