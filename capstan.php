@@ -18,4 +18,5 @@ WP_CLI::add_command('capstan make cpt', \PressGang\Capstan\Commands\MakeCptComma
 WP_CLI::add_command('capstan make block', \PressGang\Capstan\Commands\MakeBlockCommand::class);
 WP_CLI::add_command('capstan make controller', \PressGang\Capstan\Commands\MakeControllerCommand::class);
 WP_CLI::add_command('capstan make muster', \PressGang\Capstan\Commands\MakeMusterCommand::class);
+WP_CLI::add_command('capstan make api-index', \PressGang\Capstan\Commands\MakeApiIndexCommand::class);
 WP_CLI::add_command('capstan mcp serve', \PressGang\Capstan\Commands\McpServeCommand::class);
