@@ -120,11 +120,9 @@ final class ToolRegistry implements ToolProvider
             fn (array $a): array => $this->proxy('capstan about --format=json', []),
         );
 
-        // TODO net-new — the headline capability. Read each installed package's
-        // docs/api-index.json (versions pinned from composer.lock), match `query`
-        // against method names/signatures, return hits with their WordPress-doc
-        // links. This is what turns the static local indexes into Boost-style
-        // version-aware documentation search.
+        // The headline capability: search each installed package's
+        // docs/api-index.json (versions pinned by vendor = composer.lock),
+        // returning ranked hits with signatures and WordPress-doc links.
         $this->add(
             'pressgang_docs_search',
             'Search installed PressGang package API indexes, version-matched to composer.lock.',
@@ -136,7 +134,10 @@ final class ToolRegistry implements ToolProvider
                 ],
                 'required'   => ['query'],
             ],
-            fn (array $a): array => $this->text('TODO: search the docs/api-index.json corpus', isError: true),
+            fn (array $a): array => $this->data((new \PressGang\Capstan\Support\DocsIndex())->search(
+                (string) ($a['query'] ?? ''),
+                isset($a['package']) ? (string) $a['package'] : null,
+            )),
         );
 
         // TODO net-new — surface Shakedown's observer.php per-request signals
@@ -194,6 +195,12 @@ final class ToolRegistry implements ToolProvider
         return $this->text(
             is_string($json) && $json !== '' ? $json : '{"error":"command produced no output"}',
         );
+    }
+
+    /** Wrap a structured payload as JSON text content. */
+    private function data(array $payload): array
+    {
+        return $this->text((string) json_encode($payload, JSON_UNESCAPED_SLASHES));
     }
 
     /** @return array{content:list<array>,isError?:bool} */
