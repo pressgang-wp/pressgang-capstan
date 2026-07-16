@@ -5,10 +5,14 @@ namespace PressGang\Capstan\Commands;
 use PressGang\Capstan\Support\SiteMusterTemplate;
 
 /**
- * Scaffolds a development seed (`src/Muster/SiteMuster.php`) from the
+ * Scaffolds a development seed (`muster/SiteMuster.php`) from the
  * theme's own shape: its post types, taxonomies, page templates, and menu
  * locations — with ACF values derived from acf-json at seed time via
  * Muster::acfFor(), so the seed stays true as field groups evolve.
+ *
+ * Seeders live in a top-level `muster/` directory, mapped under the theme's
+ * composer `autoload-dev` — they are development/test fixtures, not production
+ * theme code, and depend on the require-dev pressgang-wp/muster package.
  *
  * The generated file is a starting point the theme owns: it is generated
  * once and never overwritten (no --force-overwrite by design — rename or
@@ -42,7 +46,7 @@ class MakeMusterCommand
         }
 
         $theme = get_stylesheet_directory();
-        $relative = 'src/Muster/SiteMuster.php';
+        $relative = 'muster/SiteMuster.php';
 
         if (is_file("{$theme}/{$relative}") || class_exists("{$namespace}\\Muster\\SiteMuster")) {
             \WP_CLI::error("{$relative} already exists — it's yours now; edit it directly.");
@@ -68,7 +72,19 @@ class MakeMusterCommand
 
         file_put_contents($path, $source);
 
-        \WP_CLI::success('SiteMuster created. Seed your site with: wp capstan seed (add --fresh to reset first) — then edit the file to make the content yours.');
+        \WP_CLI::success("SiteMuster created at {$relative}.");
+
+        if (! class_exists("{$namespace}\\Muster\\SiteMuster")) {
+            \WP_CLI::log('');
+            \WP_CLI::log('Map the muster/ directory under autoload-dev in the theme composer.json,');
+            \WP_CLI::log('then dump the autoloader:');
+            \WP_CLI::log('');
+            \WP_CLI::log("    \"autoload-dev\": { \"psr-4\": { \"{$namespace}\\\\Muster\\\\\": \"muster/\" } }");
+            \WP_CLI::log('    composer dump-autoload');
+        }
+
+        \WP_CLI::log('');
+        \WP_CLI::log('Then seed your site with: wp capstan seed (add --fresh to reset first) — and edit the file to make the content yours.');
     }
 
     /**

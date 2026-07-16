@@ -22,7 +22,7 @@ final class SiteMusterTemplate
      *     pageTemplates: array<int, string>,
      *     menus: array<string, string>
      * } $blueprint
-     * @return string PHP source for src/Muster/SiteMuster.php.
+     * @return string PHP source for muster/SiteMuster.php.
      */
     public static function render(array $blueprint): string
     {
