@@ -54,6 +54,6 @@ class McpServeCommand
 
     private function version(): string
     {
-        return \PressGang\Capstan\CapstanCommand::VERSION;
+        return \PressGang\Capstan\CapstanCommand::version();
     }
 }

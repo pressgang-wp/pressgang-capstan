@@ -11,5 +11,13 @@ namespace PressGang\Capstan;
  */
 class CapstanCommand
 {
-    public const VERSION = '0.3.0';
+    /**
+     * Capstan's version, derived from the installed package metadata (the git
+     * tag Composer resolved) — never hand-maintained. 'dev' from a working
+     * clone with no derivable tag.
+     */
+    public static function version(): string
+    {
+        return \PressGang\Capstan\Support\PackageVersion::of('pressgang-wp/capstan');
+    }
 }

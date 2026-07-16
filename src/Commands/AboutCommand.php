@@ -35,7 +35,7 @@ class AboutCommand
 
         if (($assoc_args['format'] ?? 'log') === 'json') {
             \WP_CLI::log((string) json_encode([
-                'version' => CapstanCommand::VERSION,
+                'version' => CapstanCommand::version(),
                 'php' => PHP_VERSION,
                 'working_dir' => $cwd,
                 'wp_root' => $context->wpRoot,
@@ -44,7 +44,7 @@ class AboutCommand
             return;
         }
 
-        \WP_CLI::log('Capstan version ' . CapstanCommand::VERSION);
+        \WP_CLI::log('Capstan version ' . CapstanCommand::version());
         \WP_CLI::log('');
         \WP_CLI::log('PHP version:    ' . PHP_VERSION);
         \WP_CLI::log('Working dir:    ' . $cwd);

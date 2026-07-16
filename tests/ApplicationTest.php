@@ -9,9 +9,10 @@ use PressGang\Capstan\Support\Tokens;
 
 class ApplicationTest extends TestCase
 {
-    public function testVersion(): void
+    public function testVersionIsDerivedFromPackageMetadata(): void
     {
-        $this->assertSame('0.1.0', CapstanCommand::VERSION);
+        // No hand-maintained constant: a working clone reports 'dev'.
+        $this->assertSame('dev', CapstanCommand::version());
     }
 
     public function testTokensDeriveThemeName(): void

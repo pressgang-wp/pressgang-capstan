@@ -5,6 +5,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "composer-runtime-api": "^2.0",
         "ext-zip": "*",
         "symfony/process": "^7.0",
         "symfony/filesystem": "^7.0"

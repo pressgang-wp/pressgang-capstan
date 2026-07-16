@@ -48,8 +48,12 @@ class MakeApiIndexCommand
         $manifest = require $manifest_file;
 
         if (! is_array($manifest) || ! isset($manifest['groups'])) {
-            \WP_CLI::error('api-index.php must return an array with at least package, version, and groups.');
+            \WP_CLI::error('api-index.php must return an array with at least package and groups.');
         }
+
+        // Default the version from the installed package metadata when the
+        // manifest omits it — one less thing to hand-maintain.
+        $manifest['version'] ??= \PressGang\Capstan\Support\PackageVersion::of((string) ($manifest['package'] ?? ''));
 
         $payload = (new ApiIndexGenerator())->generate($manifest, gmdate('Y-m-d\TH:i:s\Z'));
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";

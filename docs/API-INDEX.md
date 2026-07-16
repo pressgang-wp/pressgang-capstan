@@ -18,7 +18,7 @@ use PressGang\Quartermaster\Quartermaster;
 
 return [
     'package'       => 'pressgang/quartermaster',
-    'version'       => '0.1.0',
+    'version'       => '0.1.0',                            // optional — derived from installed metadata when omitted
     'entrypoint'    => Quartermaster::class,
     'principles'    => ['Args-first; outputs plain WP_Query arrays', /* … */],
     'annotate_args' => true,                              // opt in to the Sets:/query-args convention
@@ -43,6 +43,15 @@ Wire it into the package's composer scripts so it stays current:
 ```json
 "scripts": { "api-index": "wp capstan make api-index --force" }
 ```
+
+### Versioning
+
+`version` is optional. Omit it and the generator stamps the installed package
+version (the git tag Composer resolved), falling back to `dev` in a working
+clone with no derivable tag — so there is nothing to hand-maintain. Because
+`docs/api-index.json` is a **committed** artifact, keep an explicit `version` if
+you want the file to read as a specific release without regenerating; otherwise
+regenerate at release time and let it derive.
 
 ## The schema (`docs/api-index.json`)
 
