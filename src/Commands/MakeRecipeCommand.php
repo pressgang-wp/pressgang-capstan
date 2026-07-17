@@ -128,7 +128,9 @@ class MakeRecipeCommand
                 'postType' => 'page',
                 'source' => "page template {$template}",
                 'core' => ["->slug({$slug})", '->template(' . var_export($template, true) . ')'],
-                'acf' => $this->schema_acf($mapper, ['page_template' => $template]),
+                // ACF only evaluates a page_template rule when post_type is also
+                // in the filter — without it the match silently returns nothing.
+                'acf' => $this->schema_acf($mapper, ['post_type' => 'page', 'page_template' => $template]),
             ];
         }
 
