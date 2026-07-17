@@ -22,10 +22,18 @@ class PackageVersionTest extends TestCase
         $this->assertSame('0.0.0', PackageVersion::of('nope/nope', '0.0.0'));
     }
 
-    public function testTreatsNoVersionSetPlaceholderAsUnknown(): void
+    public function testNormalizeTreatsPlaceholderAndEmptyAsUnknown(): void
     {
-        // In its own working clone, capstan is the root package with no
-        // derivable tag — the placeholder must become the fallback, not leak.
-        $this->assertSame('dev', PackageVersion::of('pressgang-wp/capstan'));
+        // Composer's root-package placeholder and an empty string are "unknown".
+        $this->assertSame('dev', PackageVersion::normalize('1.0.0+no-version-set'));
+        $this->assertSame('dev', PackageVersion::normalize(''));
+        $this->assertSame('0.0.0', PackageVersion::normalize('', '0.0.0'));
+    }
+
+    public function testNormalizePassesRealVersionsThrough(): void
+    {
+        // A resolved tag or branch alias is a real answer — never overridden.
+        $this->assertSame('v0.3.0', PackageVersion::normalize('v0.3.0'));
+        $this->assertSame('dev-main', PackageVersion::normalize('dev-main'));
     }
 }

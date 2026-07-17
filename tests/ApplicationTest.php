@@ -11,8 +11,13 @@ class ApplicationTest extends TestCase
 {
     public function testVersionIsDerivedFromPackageMetadata(): void
     {
-        // No hand-maintained constant: a working clone reports 'dev'.
-        $this->assertSame('dev', CapstanCommand::version());
+        // No hand-maintained constant. The exact value depends on how the
+        // package was resolved (a tag when installed, 'dev'/'dev-main' from a
+        // clone) — assert only that it is a real answer, never the placeholder.
+        $version = CapstanCommand::version();
+
+        $this->assertNotSame('', $version);
+        $this->assertStringNotContainsString('no-version-set', $version);
     }
 
     public function testTokensDeriveThemeName(): void

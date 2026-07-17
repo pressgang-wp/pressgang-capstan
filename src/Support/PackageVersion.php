@@ -19,13 +19,20 @@ final class PackageVersion
             class_exists(\Composer\InstalledVersions::class)
             && \Composer\InstalledVersions::isInstalled($package)
         ) {
-            $version = (string) \Composer\InstalledVersions::getPrettyVersion($package);
-
-            if ($version !== '' && ! str_contains($version, 'no-version-set')) {
-                return $version;
-            }
+            return self::normalize((string) \Composer\InstalledVersions::getPrettyVersion($package), $fallback);
         }
 
         return $fallback;
+    }
+
+    /**
+     * Treat an empty string or Composer's root-package placeholder
+     * ("…+no-version-set") as unknown, yielding the fallback. A real resolved
+     * version — a tag like `v0.3.0`, or a branch alias like `dev-main` — passes
+     * through unchanged.
+     */
+    public static function normalize(string $version, string $fallback = 'dev'): string
+    {
+        return $version !== '' && ! str_contains($version, 'no-version-set') ? $version : $fallback;
     }
 }
