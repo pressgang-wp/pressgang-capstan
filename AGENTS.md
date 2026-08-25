@@ -16,6 +16,7 @@ Capstan is not:
 - A per-project Composer dependency (it is installed globally via `wp package install`)
 - A build tool or asset compiler
 - A replacement for WP-CLI core commands
+- The owner of PHPStan execution or configuration
 
 ### Distribution
 
@@ -55,6 +56,9 @@ Capstan must understand PressGang's architecture to generate correct scaffolding
 - **Timber-first rendering** — controllers prepare context; Twig templates render it
 - **Child theme structure** — `config/`, `src/`, `views/`, `style.css`, `functions.php`, `composer.json`
 - **Parent/child separation** — parent provides framework; child provides site-specific config, controllers, templates, branding
+- **Static analysis at theme level** — child themes own `composer phpstan` and
+  `composer check`; Capstan may scaffold starter files but must not
+  re-implement PHPStan.
 
 ---
 
@@ -99,6 +103,19 @@ wp capstan make child my-theme --path=/srv/www/wp-content/themes --force
 ```
 
 The child theme's `composer.json` requires `pressgang-wp/pressgang` and uses `installer-paths` to put the parent theme at `../../themes/pressgang/`. Running `composer install` in the child theme directory wires everything up.
+
+The scaffold includes PHPStan level 8 starter tooling:
+
+- `phpstan.neon.dist`
+- `phpstan-bootstrap.php`
+- `phpstan-stubs/`
+- `composer phpstan`
+- `composer check` as exactly `test:compat` + `phpstan`
+
+Do not add `wp capstan check` yet. It is blocked until real child-theme
+adoption proves the Composer script shape. If implemented later, it must only
+shell out to the target theme's `composer check`, run `wp capstan doctor`, and
+report both; it must not configure, wrap, or invoke PHPStan directly.
 
 ### Theme packaging
 
@@ -154,6 +171,10 @@ Commands should fall into one of the following categories:
 - `wp capstan theme screenshot`
 
 New commands must fit one of these categories.
+
+`doctor` stays runtime-only: deterministic, fast, and heuristic-free. Do not
+fold PHPStan-style static analysis, type checks, or convention inference into
+it.
 
 ---
 

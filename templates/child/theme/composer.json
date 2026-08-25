@@ -6,6 +6,13 @@
 	"require": {
 		"pressgang-wp/pressgang": "^2.0"
 	},
+	"require-dev": {
+		"php-stubs/acf-pro-stubs": "^6.8",
+		"php-stubs/woocommerce-stubs": "^11.0",
+		"phpstan/extension-installer": "^1.4",
+		"phpstan/phpstan": "^2.1",
+		"szepeviktor/phpstan-wordpress": "^2.0"
+	},
 	"extra": {
 		"installer-paths": {
 			"../../plugins/{$name}/": [
@@ -20,12 +27,21 @@
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"allow-plugins": {
-			"composer/installers": true
+			"composer/installers": true,
+			"phpstan/extension-installer": true
 		}
 	},
 	"autoload": {
 		"psr-4": {
 			"{{theme_namespace}}\\": "src/"
 		}
+	},
+	"scripts": {
+		"check": [
+			"@test:compat",
+			"@phpstan"
+		],
+		"test:compat": "php -d error_reporting=E_ALL -d display_errors=1 -l functions.php",
+		"phpstan": "phpstan analyse --memory-limit=1G"
 	}
 }

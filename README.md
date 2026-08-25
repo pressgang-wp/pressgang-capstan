@@ -61,6 +61,10 @@ composer install
 
 When [Muster](https://github.com/pressgang-wp/pressgang-muster) is installed in the theme, it also registers `wp capstan seed` (run the theme's `SiteMuster` by convention, with a production guard) and `wp capstan muster <class>` (the low-level runner). See the Muster docs for their flags.
 
+`wp capstan doctor` is runtime-only: deterministic, fast, and heuristic-free.
+It should not absorb PHPStan-style static analysis, type checks, or convention
+inference; use the theme's Composer scripts for that.
+
 ## Usage
 
 ### New project
@@ -106,6 +110,17 @@ wp capstan make child my-theme --name="My Theme" --namespace=MyTheme --force
 # Explicit target path
 wp capstan make child my-theme --path=/srv/www/wp-content/themes --force
 ```
+
+The scaffold includes PHPStan level 8 starter tooling:
+`phpstan.neon.dist`, `phpstan-bootstrap.php`, `phpstan-stubs/`,
+`composer phpstan`, and `composer check`. The `check` script is only a local
+convenience alias for `test:compat` plus `phpstan`; keep CI steps split when
+failure attribution matters.
+
+Capstan does not implement `wp capstan check`. If that command lands later, it
+must only shell out to the target theme's `composer check`, run
+`wp capstan doctor`, and report both results. It must not configure or invoke
+PHPStan itself.
 
 ### Development seeding
 

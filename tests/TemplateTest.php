@@ -115,6 +115,9 @@ class TemplateTest extends TestCase
         $this->assertContains('functions.php', $relativePaths);
         $this->assertContains('composer.json', $relativePaths);
         $this->assertContains('index.php', $relativePaths);
+        $this->assertContains('phpstan-bootstrap.php', $relativePaths);
+        $this->assertContains('phpstan.neon.dist', $relativePaths);
+        $this->assertContains('phpstan-stubs/woocommerce-runtime.stub', $relativePaths);
         $this->assertContains('theme.json', $relativePaths);
         $this->assertContains('views/front-page.twig', $relativePaths);
         $this->assertContains('scss/styles.scss', $relativePaths);
@@ -166,8 +169,11 @@ class TemplateTest extends TestCase
 
         $this->assertTrue($indexed['style.css']);
         $this->assertTrue($indexed['functions.php']);
+        $this->assertTrue($indexed['phpstan-bootstrap.php']);
         $this->assertTrue($indexed['composer.json']);
         $this->assertTrue($indexed['theme.json']); // .json is in text_extensions
+        $this->assertFalse($indexed['phpstan.neon.dist']); // no tokens
+        $this->assertFalse($indexed['phpstan-stubs/woocommerce-runtime.stub']); // no tokens
         $this->assertFalse($indexed['config/.gitkeep']); // no extension match
     }
 

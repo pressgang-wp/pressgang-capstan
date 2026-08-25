@@ -78,6 +78,7 @@ class MakeChildCommand
             \WP_CLI::log('');
             \WP_CLI::log('Next steps:');
             \WP_CLI::log('  cd ' . $targetDir . ' && composer install');
+            \WP_CLI::log('  composer check');
             \PressGang\Capstan\Support\BosunBriefing::tip();
         } else {
             \WP_CLI::log('');

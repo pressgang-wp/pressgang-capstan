@@ -1,0 +1,13 @@
+parameters:
+	level: 8
+	paths:
+		- functions.php
+		- config
+		- src
+	bootstrapFiles:
+		- phpstan-bootstrap.php
+	scanFiles:
+		- vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+		- vendor/php-stubs/acf-pro-stubs/acf-pro-stubs.php
+	stubFiles:
+		- phpstan-stubs/woocommerce-runtime.stub

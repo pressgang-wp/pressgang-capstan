@@ -310,15 +310,22 @@ class ThemePackagerTest extends TestCase
         file_put_contents($themeDir . '/phpunit.xml', '');
         file_put_contents($themeDir . '/phpunit.xml.dist', '');
         file_put_contents($themeDir . '/phpcs.xml', '');
+        file_put_contents($themeDir . '/phpstan-bootstrap.php', '<?php');
         file_put_contents($themeDir . '/phpstan.neon', '');
+        file_put_contents($themeDir . '/phpstan.neon.dist', '');
         file_put_contents($themeDir . '/.php-cs-fixer.php', '<?php');
+        mkdir($themeDir . '/phpstan-stubs');
+        file_put_contents($themeDir . '/phpstan-stubs/runtime.stub', '<?php');
 
         $files = $this->packager->collectFiles($themeDir);
 
         $this->assertNotContains('phpunit.xml', $files);
         $this->assertNotContains('phpunit.xml.dist', $files);
         $this->assertNotContains('phpcs.xml', $files);
+        $this->assertNotContains('phpstan-bootstrap.php', $files);
         $this->assertNotContains('phpstan.neon', $files);
+        $this->assertNotContains('phpstan.neon.dist', $files);
+        $this->assertNotContains('phpstan-stubs/runtime.stub', $files);
         $this->assertNotContains('.php-cs-fixer.php', $files);
     }
 
