@@ -99,7 +99,12 @@ class ResolveCommand
             $notes = [];
 
             if (isset($map[$candidate])) {
-                $notes[] = 'config: ' . $map[$candidate] . (class_exists($map[$candidate]) ? '' : ' (missing!)');
+                $entry = $map[$candidate];
+                $class = is_array($entry) ? $entry['controller'] : $entry;
+                $notes[] = 'config: ' . $class . (class_exists($class) ? '' : ' (missing!)');
+                if (is_array($entry) && isset($entry['template'])) {
+                    $notes[] = 'template: ' . $entry['template'];
+                }
             }
 
             foreach (\PressGang\Controllers\ControllerFactory::inferred_controller_names($candidate) as $base) {
