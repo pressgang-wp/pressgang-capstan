@@ -85,6 +85,7 @@ class DoctorCommand
 
         if (class_exists(\PressGang\Bootstrap\Config::class)) {
             $this->check_config_classes($namespace);
+            $this->check_replaced_parent_config();
         } else {
             $this->results[] = [
                 'check' => 'PressGang config',
@@ -177,6 +178,136 @@ class DoctorCommand
             'physical files shadow config-registered ids: ' . implode(', ', $shadowed),
             'WARN'
         );
+    }
+
+    /**
+     * Config files whose parent entries are framework wiring, not site content.
+     *
+     * A child theme is *meant* to replace config/menus.php or
+     * config/acf-options.php wholesale — those describe the site. These five
+     * describe how the framework is assembled, so a parent entry the child
+     * does not repeat is almost always an accident.
+     */
+    private const WIRING_CONFIG = [
+        'service-providers',
+        'twig-extensions',
+        'context-managers',
+        'timber-class-map',
+        'timber',
+    ];
+
+    /**
+     * Warns when a child config file drops framework wiring the parent declared.
+     *
+     * PressGang merges config by filename, not by key: a child
+     * `config/x.php` REPLACES the parent's file of the same name, and any
+     * parent entry the child does not repeat is silently dropped. A child
+     * `service-providers.php` without TimberServiceProvider is the worst
+     * case — every context manager, Twig extension and Twig environment
+     * option disappears, and the site still boots and renders.
+     *
+     * Deterministic: both files are read from disk and compared by identity
+     * (list values and array keys, recursively), restricted to the wiring
+     * files above. WooCommerce entries are skipped when WooCommerce is not
+     * active, since the framework gates those managers on the same fact.
+     *
+     * Overriding a wiring default on purpose is legitimate, so this warns
+     * rather than fails — except for TimberServiceProvider, which nothing
+     * else supplies.
+     */
+    private function check_replaced_parent_config(): void
+    {
+        $parent_dir = rtrim(get_template_directory(), '/') . '/config';
+        $child_dir = rtrim(get_stylesheet_directory(), '/') . '/config';
+
+        if ($parent_dir === $child_dir || ! is_dir($child_dir)) {
+            return;
+        }
+
+        $woocommerce = class_exists('WooCommerce');
+        $dropped = [];
+
+        foreach (self::WIRING_CONFIG as $name) {
+            $child_file = "{$child_dir}/{$name}.php";
+            $parent_file = "{$parent_dir}/{$name}.php";
+
+            if (! is_file($child_file) || ! is_file($parent_file)) {
+                continue;
+            }
+
+            $missing = array_values(array_filter(
+                array_diff(
+                    $this->config_identities($parent_file),
+                    $this->config_identities($child_file)
+                ),
+                fn (string $entry): bool => $woocommerce || ! str_contains($entry, 'WooCommerce')
+            ));
+
+            if ($missing !== []) {
+                $dropped[$name] = $missing;
+            }
+        }
+
+        $breaks_timber = in_array(
+            'PressGang\\ServiceProviders\\TimberServiceProvider',
+            $dropped['service-providers'] ?? [],
+            true
+        );
+
+        $detail = [];
+        foreach ($dropped as $name => $missing) {
+            $detail[] = "config/{$name}.php: " . implode(', ', $missing);
+        }
+
+        $this->check(
+            'Parent config wiring',
+            $dropped === [],
+            'child config re-declares the parent defaults it replaces',
+            'child config replaces the parent file without re-declaring: ' . implode(' | ', $detail),
+            $breaks_timber ? 'FAIL' : 'WARN'
+        );
+    }
+
+    /**
+     * Identity tokens for a config file: list values plus array keys, nested.
+     *
+     * Covers both config shapes — lists of class strings
+     * (service-providers, twig-extensions, context-managers) and keyed maps
+     * (timber-class-map, timber) — without knowing which is which.
+     *
+     * @param string $file Absolute path to a config file.
+     *
+     * @return list<string>
+     */
+    private function config_identities(string $file): array
+    {
+        $config = require $file;
+
+        return is_array($config) ? array_values(array_unique($this->identities($config))) : [];
+    }
+
+    /**
+     * @param array<mixed> $config
+     *
+     * @return list<string>
+     */
+    private function identities(array $config): array
+    {
+        $identities = [];
+
+        foreach ($config as $key => $value) {
+            if (is_string($key)) {
+                $identities[] = $key;
+            }
+
+            if (is_array($value)) {
+                $identities = array_merge($identities, $this->identities($value));
+            } elseif (is_string($value) && is_int($key)) {
+                $identities[] = $value;
+            }
+        }
+
+        return $identities;
     }
 
     /**
