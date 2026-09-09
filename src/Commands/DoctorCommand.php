@@ -147,10 +147,13 @@ class DoctorCommand
             'unresolved (silently skipped at boot): ' . implode(', ', $missing)
         );
 
-        // Service providers, controller map, and route handlers are FQCNs.
+        // Controller entries may also specify an explicit Twig template.
         foreach ([
             'Service providers' => array_values((array) \PressGang\Bootstrap\Config::get('service-providers', [])),
-            'Controller map' => array_values((array) \PressGang\Bootstrap\Config::get('controllers', [])),
+            'Controller map' => array_map(
+                static fn ($entry) => is_array($entry) ? $entry['controller'] : $entry,
+                array_values((array) \PressGang\Bootstrap\Config::get('controllers', []))
+            ),
             'Route handlers' => array_filter(array_values((array) \PressGang\Bootstrap\Config::get('routes', [])), 'is_string'),
         ] as $label => $classes) {
             $absent = array_filter($classes, fn ($class) => is_string($class) && ! class_exists($class));
